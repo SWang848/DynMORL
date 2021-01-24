@@ -121,7 +121,6 @@ class Mine():
             Computes the mean of the truncated normal distributions
         """
         means = np.zeros(len(self.distributions))
-
         for i, dist in enumerate(self.distributions):
             mean, std = dist.mean(), dist.std()
             means[i] = truncated_mean(mean, std, 0, float("inf"))
@@ -620,7 +619,7 @@ class Minecart:
         self.cart.angle = 45
         self.cart.departed = False
         self.end = False
-        self.render()
+        # self.render()
         return self.get_state()
 
     def __str__(self):

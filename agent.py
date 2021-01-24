@@ -90,7 +90,9 @@ class DeepAgent():
                  frames_per_state=2,
                  max_episode_length=1000,
                  start_impsam=1,
-                 end_impsam=1):
+                 end_impsam=1,
+                 lstm=False,
+                 non_local=False):
         """Agent implementing both Multi-Network, Multi-Head and Single-head 
             algorithms
 
@@ -159,6 +161,8 @@ class DeepAgent():
         self.target_update_interval = target_update_interval
         self.min_buf_size = min_buf_size
         self.actions = actions
+        self.lstm = lstm
+        self.non_local = non_local
 
         self.memory_size = memory_size
 
@@ -228,11 +232,79 @@ class DeepAgent():
             kernel_initializer=DENSE_INIT,
             name="post_conv_dense")(x)
         x = LEAKY_RELU()(x)
-        feature_layer = Flatten()(x)
+
+        if self.lstm:
+            flatten_layer = TimeDistributed(Flatten())(x)
+            lstm_layer = LSTM(256, return_sequences=False, dropout=0.5)(flatten_layer)
+            feature_layer = Dense(512)(lstm_layer)
+        else:
+            feature_layer = Flatten()(x)
 
         self.shared_length = 0
 
         return state_input, feature_layer, weight_input
+
+    def non_local_block(self, input:tf.Tensor, mode:str, residual:bool) -> tf.Tensor: 
+        channel_dim = 1 if K.image_data_format() == 'channels_first' else -1
+        input_shape = input.shape
+
+        if channel_dim == 1:
+            batch_size, channels, time_step, img_size_w, img_size_h = input_shape
+        else:
+            batch_size, time_step, img_size_w, img_size_h, channels = input_shape
+
+        conv_channel = channels // 2
+        if conv_channel < 1:
+            conv_channel = 1
+        
+        if mode == 'gaussian':
+            x1 = Reshape((-1, channels))(input)
+            x2 = Reshape((-1, channels))(input)
+            f = Dot(axes=2)([x1, x2])
+            f = Activation('softmax')(f)
+        
+        if mode == 'dot':
+            theta = self._conv(input, conv_channel)
+            theta = Reshape((-1, conv_channel))(theta)
+
+            phi = self._conv(input, conv_channel)
+            phi = Reshape((-1, conv_channel))(phi)
+
+            f = Dot(axes=2)([theta, phi])
+            
+            f = Lambda(lambda z: (1. / float(f.shape[-1])) * z)(f)
+
+        if mode == 'embedded gaussian':
+            theta = self._conv(input, conv_channel)
+            theta = Reshape((-1, conv_channel))(theta)
+
+            phi = self._conv(input, conv_channel)
+            phi = Reshape((-1, conv_channel))(phi)
+
+            f = Dot(axes=2)([theta, phi])
+            f = Activation('softmax')(f)
+        
+        g = self._conv(input, conv_channel)
+        g = Reshape((-1, conv_channel))(g)
+
+        y = Dot(axes=1)([f, g])
+
+        if channel_dim == -1:
+            y = Reshape((time_step, img_size_w, img_size_h, conv_channel))(y)
+        else:
+            y = Reshape((conv_channel, time_step, img_size_w, img_size_h))(y)
+
+        y = self._conv(y, channels)
+        
+        if residual:
+            y = Add()([input, y])
+
+        return y
+
+    def _conv(self, input:tf.Tensor, filter_num:int)->tf.Tensor:
+        x = TimeDistributed(Conv2D(filter_num, (1, 1), padding='same', use_bias=False, kernel_initializer='he_normal'))(input)
+        # x = Conv3D(filter_num, (1, 1, 1), padding='same', use_bias=False, kernel_initializer='he_normal')(input)
+        return x
 
     def build_dueling_head(self, feature_layer, weight_input, obj_cnt,
                            per_stream_dense_size):

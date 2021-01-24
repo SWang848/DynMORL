@@ -30,14 +30,14 @@ parser.add_option(
     "-m",
     "--memory",
     dest="mem",
-    default="STD",
+    default="DER",
     choices=["STD", "DER", "SEL", "EXP"],
     help="Memory type, one of 'std','crowd','exp','sel'")
 parser.add_option(
     "-d",
     "--dupe",
     dest="dupe",
-    default="none",
+    default="CN",
     choices=["none", "CN", "CN-UVFA", "CN-ACTIVE"],
     help="Extra training")
 parser.add_option(
@@ -107,10 +107,14 @@ parser.add_option(
     "-c", "--mode", dest="mode", choices=["regular", "sparse"], default="sparse")
 parser.add_option(
     "-s", "--seed", dest="seed", default=None, help="Random Seed", type=int)
+parser.add_option(
+    "--non_locol", dest="non_local", default=True, help="non_local_attention")
+parser.add_option("--lstm", dest="lstm", default=True)
 
 (options, args) = parser.parse_args()
 
-extra = "a-{} m-{} s-{}  e-{} d-{} x-{} {} p-{} fs-{} d-{} up-{} lr-{} e-{} p-{} m-{}-{}".format(
+extra = "nl-{} lstm-{} a-{} m-{} s-{}  e-{} d-{} x-{} {} p-{} fs-{} d-{} up-{} lr-{} e-{} p-{} m-{}-{}".format(
+    options.non_local, options.lstm,
     options.alg, options.mem, options.seed,
     options.end_e, options.dupe, options.extra, options.mode, options.reuse,
     options.frame_skip,
@@ -149,7 +153,9 @@ agent = DeepAgent(
     clipvalue=options.clipvalue,
     momentum=options.momentum,
     scale=options.scale,
-    dupe=None if options.dupe == "none" else options.dupe)
+    dupe=None if options.dupe == "none" else options.dupe,
+    lstm=options.lstm,
+    non_local=options.non_local)
 
 steps_per_weight = 50000 if options.mode == "sparse" else 1
 log_file = open('output/logs/rewards_{}'.format(extra), 'w', 1)
