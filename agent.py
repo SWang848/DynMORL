@@ -198,7 +198,7 @@ class DeepAgent():
         self.model.summary()
         self.update_target()
 
-    def build_base(self):
+    def build_base(self, non_local_block):
         """Builds the feature extraction component of the network
 
         Returns:
@@ -225,6 +225,8 @@ class DeepAgent():
                     name="conv{}".format(c)))(x)
             x = LEAKY_RELU()(x)
             x = TimeDistributed(MaxPooling2D())(x)
+            if non_local_block:
+                x = self.non_local_block(x, 'embedded gaussian', True)
 
         # Per dimension dense layer
         x = Dense(

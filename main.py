@@ -108,8 +108,8 @@ parser.add_option(
 parser.add_option(
     "-s", "--seed", dest="seed", default=None, help="Random Seed", type=int)
 parser.add_option(
-    "--non_locol", dest="non_local", default=True, help="non_local_attention")
-parser.add_option("--lstm", dest="lstm", default=True)
+    "--non_locol", dest="non_local", default=False, help="non_local_attention")
+parser.add_option("--lstm", dest="lstm", default=False)
 
 (options, args) = parser.parse_args()
 
