@@ -110,10 +110,13 @@ parser.add_option(
 parser.add_option(
     "--non_locol", dest="non_local", default=False, help="non_local_attention")
 parser.add_option("--lstm", dest="lstm", default=False)
+parser.add_option("--temp_att", dest="temp_att", default=True, help="temporal attention")
+parser.add_option("--spa_att", dest="spa_att", default=True, help="space attention")
 
 (options, args) = parser.parse_args()
 
-extra = "nl-{} lstm-{} a-{} m-{} s-{}  e-{} d-{} x-{} {} p-{} fs-{} d-{} up-{} lr-{} e-{} p-{} m-{}-{}".format(
+extra = " temp_att-{} nl-{} lstm-{} a-{} m-{} s-{}  e-{} d-{} x-{} {} p-{} fs-{} d-{} up-{} lr-{} e-{} p-{} m-{}-{}".format(
+    options.temp_att,
     options.non_local, options.lstm,
     options.alg, options.mem, options.seed,
     options.end_e, options.dupe, options.extra, options.mode, options.reuse,
@@ -155,7 +158,8 @@ agent = DeepAgent(
     scale=options.scale,
     dupe=None if options.dupe == "none" else options.dupe,
     lstm=options.lstm,
-    non_local=options.non_local)
+    non_local=options.non_local,
+    temp_att=options.temp_att)
 
 steps_per_weight = 50000 if options.mode == "sparse" else 1
 log_file = open('output/logs/rewards_{}'.format(extra), 'w', 1)

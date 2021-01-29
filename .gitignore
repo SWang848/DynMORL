@@ -6,3 +6,5 @@ __pycache__/diverse_mem.cpython-38.pyc
 __pycache__/history.cpython-38.pyc
 __pycache__/minecart.cpython-38.pyc
 output/logs/rewards_nl-False lstm-False a-scal m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01
+agent.py
+output/logs/rewards_ temp_att-True nl-False lstm-False a-scal m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01

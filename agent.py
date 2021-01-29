@@ -92,7 +92,8 @@ class DeepAgent():
                  start_impsam=1,
                  end_impsam=1,
                  lstm=False,
-                 non_local=False):
+                 non_local=False,
+                 temp_att=False):
         """Agent implementing both Multi-Network, Multi-Head and Single-head 
             algorithms
 
@@ -163,6 +164,7 @@ class DeepAgent():
         self.actions = actions
         self.lstm = lstm
         self.non_local = non_local
+        self.temp_att = temp_att
 
         self.memory_size = memory_size
 
@@ -235,7 +237,20 @@ class DeepAgent():
             name="post_conv_dense")(x)
         x = LEAKY_RELU()(x)
 
-        if self.lstm:
+        if self.temp_att:
+            flatten_layer = TimeDistributed(Flatten())(x)
+            hidden_input = TimeDistributed(Dense(512, activation='relu', name='hidden_input'))(flatten_layer)
+            all_outs = Bidirectional(LSTM(512, return_sequences=True, stateful=False, 
+                                                input_shape=(self.frames_per_state, 512)), merge_mode='sum')(hidden_input)
+            attention = TimeDistributed(Dense(1, activation="tanh"))(all_outs)
+            attention = Flatten()(attention)
+            attention = Activation('softmax')(attention)
+            attention = RepeatVector(512)(attention)
+            attention = Permute([2, 1])(attention)
+            sent_representation = Multiply()([all_outs, attention])
+            context = Lambda(lambda xin: K.sum(xin, axis=-2), output_shape=(512,))(sent_representation)
+            feature_layer = Dense(512, activation='relu')(context)
+        elif self.lstm:
             flatten_layer = TimeDistributed(Flatten())(x)
             lstm_layer = LSTM(256, return_sequences=False, dropout=0.5)(flatten_layer)
             feature_layer = Dense(512)(lstm_layer)
@@ -409,13 +424,13 @@ class DeepAgent():
                     trainable model and a predictive model
         """
 
-        state_input, feature_layer, weight_input = self.build_base()
+        state_input, feature_layer, weight_input = self.build_base(self.non_local)
 
         # Build dueling Q-value heads on top of the base
         main_model, trainable_model = self.build_head(
             feature_layer, state_input, weight_input)
 
-        state_input, feature_layer, weight_input = self.build_base()
+        state_input, feature_layer, weight_input = self.build_base(self.non_local)
         target_model, _ = self.build_head(
             feature_layer, state_input, weight_input)
 
