@@ -252,8 +252,9 @@ class DeepAgent():
             feature_layer = Dense(512, activation='relu')(context)
         elif self.lstm:
             flatten_layer = TimeDistributed(Flatten())(x)
-            lstm_layer = LSTM(256, return_sequences=False, dropout=0.5)(flatten_layer)
-            feature_layer = Dense(512)(lstm_layer)
+            hidden_input = TimeDistributed(Dense(512, activation='relu', name='hidden_input'))(flatten_layer)
+            context = LSTM(512, return_sequences=False, stateful=False, input_shape=(self.frames_per_state, 512))(hidden_input)
+            feature_layer = Dense(512, activation='relu')(context)
         else:
             feature_layer = Flatten()(x)
 
