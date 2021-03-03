@@ -21,6 +21,7 @@ from keras.utils import np_utils
 
 from config_agent import *
 from diverse_mem import DiverseMemory
+from memory_network import MemoryNetwork
 from history import *
 from utils import *
 
@@ -87,13 +88,14 @@ class DeepAgent():
                  scale=1,
                  im_size=(IM_SIZE, IM_SIZE),
                  grayscale=BLACK_AND_WHITE,
-                 frames_per_state=2,
+                 frames_per_state=10,
                  max_episode_length=1000,
                  start_impsam=1,
                  end_impsam=1,
                  lstm=False,
                  non_local=False,
-                 temp_att=False):
+                 temp_att=False,
+                 memory_net=False):
         """Agent implementing both Multi-Network, Multi-Head and Single-head 
             algorithms
 
@@ -165,6 +167,7 @@ class DeepAgent():
         self.lstm = lstm
         self.non_local = non_local
         self.temp_att = temp_att
+        self.memory_net = memory_net
 
         self.memory_size = memory_size
 
@@ -239,22 +242,31 @@ class DeepAgent():
 
         if self.temp_att:
             flatten_layer = TimeDistributed(Flatten())(x)
-            hidden_input = TimeDistributed(Dense(512, activation='relu', name='hidden_input'))(flatten_layer)
-            all_outs = Bidirectional(LSTM(512, return_sequences=True, stateful=False, 
-                                                input_shape=(self.frames_per_state, 512)), merge_mode='sum')(hidden_input)
+            hidden_input = TimeDistributed(Dense(256, activation='relu', name='hidden_input'))(flatten_layer)
+            all_outs = Bidirectional(LSTM(256, return_sequences=True, stateful=False, 
+                                                input_shape=(self.frames_per_state, 256)), merge_mode='sum')(hidden_input)
             attention = TimeDistributed(Dense(1, activation="tanh"))(all_outs)
             attention = Flatten()(attention)
             attention = Activation('softmax')(attention)
-            attention = RepeatVector(512)(attention)
+            attention = RepeatVector(256)(attention)
             attention = Permute([2, 1])(attention)
             sent_representation = Multiply()([all_outs, attention])
-            context = Lambda(lambda xin: K.sum(xin, axis=-2), output_shape=(512,))(sent_representation)
-            feature_layer = Dense(512, activation='relu')(context)
+            context = Lambda(lambda xin: K.sum(xin, axis=-2), output_shape=(256,))(sent_representation)
+            feature_layer = Dense(256, activation='relu')(context)
         elif self.lstm:
             flatten_layer = TimeDistributed(Flatten())(x)
-            hidden_input = TimeDistributed(Dense(512, activation='relu', name='hidden_input'))(flatten_layer)
-            context = LSTM(512, return_sequences=False, stateful=False, input_shape=(self.frames_per_state, 512))(hidden_input)
-            feature_layer = Dense(512, activation='relu')(context)
+            hidden_input = TimeDistributed(Dense(256, activation='relu', name='hidden_input'))(flatten_layer)
+            context = LSTM(256, return_sequences=False, stateful=False, input_shape=(self.frames_per_state, 256))(hidden_input)
+            feature_layer = Dense(256, activation='relu')(context)
+        elif self.memory_net:
+            flatten_layer = TimeDistributed(Flatten())(x)
+            context, last_state_output, _ = LSTM(256, return_sequences=True, return_state=True, name="memory_context")(flatten_layer)
+            conc = Concatenate(name="conc")([flatten_layer, context])
+            memory = MemoryNetwork(256, memory_size=10, name='o_t')(conc)
+
+            output = Dense(256)(last_state_output)
+            output = Add()([output, memory])
+            feature_layer = Dense(256, activation='relu')(output)
         else:
             feature_layer = Flatten()(x)
 

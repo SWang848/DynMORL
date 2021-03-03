@@ -8,3 +8,16 @@ __pycache__/minecart.cpython-38.pyc
 output/logs/rewards_nl-False lstm-False a-scal m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01
 agent.py
 output/logs/rewards_ temp_att-True nl-False lstm-False a-scal m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01
+output/logs/rewards_ temp_att-True nl-False lstm-False a-scal m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01.csv
+__pycache__/memory_network.cpython-38.pyc
+output/logs/rewards_memory_net-True temp_att-False nl-False lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01
+output/logs/rewards_memory_net-True temp_att-False nl-False lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01.csv
+output/logs/rewards_nl-False lstm-False a-scal m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01.csv
+output/logs/rewards_nl-True lstm-True a-scal m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01.csv
+output/logs/rewards_No.2 temp_att-False nl-False lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01
+output/logs/rewards_No.2 temp_att-False nl-False lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01.csv
+output/logs/rewards_No.2 temp_att-False nl-True lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01
+output/logs/rewards_No.2 temp_att-False nl-True lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01.csv
+output/logs/rewards_No.2 temp_att-True nl-False lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01
+output/logs/rewards_No.2 temp_att-True nl-False lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01.csv
+output/logs/rewards_No.3 temp_att-False nl-False lstm-False a-cond m-DER s-None  e-0.05 d-CN x- sparse p-full fs-4 d-0.98 up-4 lr-0.02 e-1 p-100000 m-2.0-0.01

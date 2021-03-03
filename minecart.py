@@ -259,6 +259,7 @@ class Minecart:
             Returns:
                 The pareto coverage set
         """
+
         all_rewards = []
         base_perimeter = BASE_RADIUS * BASE_SCALE
 
