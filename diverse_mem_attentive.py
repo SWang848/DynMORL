@@ -1,4 +1,6 @@
 import numpy as np
+import random
+
 
 class ReplayBuffer:
 
@@ -19,7 +21,6 @@ class ReplayBuffer:
 
 
 class DiverseMemory:
-
 
     def __init__(
             self,
@@ -45,6 +46,21 @@ class DiverseMemory:
     def main_mem_is_full(self):
 
         return self.data[self.write][0] is not None
+
+    def sample(self, n):
+        if n < 1:
+            return None, None, None
+        
+        batch = np.zeros((n, ), dtype=np.ndarray)
+        ids = np.zeros(n, dtype=int)
+        for i in range(n):
+            id = np.random.uniform(0, self.capacity)
+            while self.data[i][1] is None:
+                id = np.random.uniform(0, self.capacity)
+            ids[i] = id
+            batch[i] = self.data[i][1]
+            priorities = None
+        return ids, batch, priorities
 
     def add(self, sample, trace_id=None, pred_idx=None):
         self.len = min(self.len + 1, self.capacity)
@@ -176,4 +192,15 @@ class DiverseMemory:
 
         return distances
     
-    def 
+    def get_data(self, include_indices=False):
+        all_data = list(np.arange(self.capacity), list(self.data)
+        indices = []
+        data = []
+        for i, d in zip(all_data[0], all_data[1]):
+            if d[1] is not None:
+                indices.append(i)
+                data.append(d[1])
+        if include_indices:
+            return indices, data
+        else:
+            return data
