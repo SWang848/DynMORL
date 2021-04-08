@@ -55,12 +55,61 @@ class DiverseMemory:
         ids = np.zeros(n, dtype=int)
         for i in range(n):
             id = np.random.uniform(0, self.capacity)
-            while self.data[i][1] is None:
+            while self.data[id][1] is None:
                 id = np.random.uniform(0, self.capacity)
             ids[i] = id
             batch[i] = self.data[i][1]
             priorities = None
         return ids, batch, priorities
+    
+    def sample_attentive(self, n, k, current_state):
+        if n < 1:
+            return None, None, None
+
+        batch = np.zeros((n, ), dtype=np.ndarray)
+        ids = np.zeros(n, dtype=int)
+        score = dict()
+        for i in range(n*k):
+            id = np.random.uniform(0, self.capacity)
+            while self.data[id][1] is None:
+                id = np.random.uniform(0, self.capacity)
+            score[id] = self.cal_similarity(self.data[id][1][0], current_state)
+
+        score = sorted(score.items(), key=lambda item: item[1], reverse=False)
+        for i in range(n):
+            ids[i] = score[i][0]
+            batch[i] = self.data[ids[i]][1]
+            priorities = None
+        return ids, batch, priorities
+
+    def cal_similarity(self, old, current):
+        state = {'old':old, 'current':current}
+        for key, value in state.items():
+
+            input_t = tf.convert_to_tensor(value, dtype=np.float32)
+            x = Lambda(lambda x: x / 255., name="input_normalizer")(input_t)
+
+            x = TimeDistributed(Conv2D(filters=32, kernel_size=6, strides=2, 
+                                        activation='relu', kernel_initializer='glorot_uniform',
+                                        input_shape=x.shape))(x)
+            x = TimeDistributed(MaxPool2D())(x)
+
+            x = TimeDistributed(Conv2D(filters=48, kernel_size=5, strides=2, 
+                                        activation='relu', kernel_initializer='glorot_uniform'))(x)
+            x = TimeDistributed(MaxPool2D())(x)
+
+            x = Dense(256, activation='relu', kernel_initializer='glorot_uniform')(x)
+            x = Dense(128, activation='relu', kernel_initializer='glorot_uniform')(x)
+            x = Dense(64, activation='relu', kernel_initializer='glorot_uniform')(x)
+
+            x = Flatten()(x)
+            state[key] = x.numpy()
+
+        dist = np.linalg.norm(state['current']-state['old'])
+        
+        # print(dist)
+        return dist
+
 
     def add(self, sample, trace_id=None, pred_idx=None):
         self.len = min(self.len + 1, self.capacity)
@@ -75,6 +124,9 @@ class DiverseMemory:
         self.write = (self.write + 1) % self.main_capacity
 
         return self.write-1
+
+    def get(self, indices):
+        return self.data[indices][:, 1]
     
     def add_sample(self, transition, write=None):
         replaced_data = np.copy(self.data[write])
