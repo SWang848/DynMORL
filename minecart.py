@@ -569,7 +569,10 @@ class Minecart(Env):
                     rect_height))
 
         pygame.display.update()
-
+    
+    @staticmethod
+    def action_space():
+        return range(ACTION_COUNT)
 
 images = {}
 def draw_image(ctx, image, top, left, scale, rotation):

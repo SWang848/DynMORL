@@ -572,7 +572,7 @@ class DeepAgent():
         pred_idx = None
 
         current_state_raw = self.env.reset()
-        current_state = self.history.fill_raw_frame(
+        self.current_state = self.history.fill_raw_frame(
             pixel_env.observation(current_state_raw))
 
         for i in range(int(self.total_steps)):
@@ -581,7 +581,7 @@ class DeepAgent():
             episode_steps += 1
 
             # pick an action following an epsilon-greedy strategy
-            action = self.pick_action(current_state)
+            action = self.pick_action(self.current_state)
 
             # perform the action
             next_state_raw, reward, terminal, _ = self.env.step(
@@ -591,7 +591,7 @@ class DeepAgent():
 
             # memorize the experienced transition
             pred_idx = self.memorize(
-                current_state,
+                self.current_state,
                 action,
                 reward,
                 next_state,
@@ -612,12 +612,12 @@ class DeepAgent():
                 pred_idx = None
 
             self.log.log_step(self.env, i, loss, reward,
-                              terminal or episode_steps > self.max_episode_length, current_state, next_state,
+                              terminal or episode_steps > self.max_episode_length, self.current_state, next_state,
                               self.weights, self.end_discount, episode_steps,
                               self.epsilon, self.frame_skip,
                               current_state_raw, action)
 
-            current_state = next_state
+            self.current_state = next_state
             current_state_raw = next_state_raw
 
             if terminal or episode_steps > self.max_episode_length:
