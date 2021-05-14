@@ -32,6 +32,7 @@ pixel = PixelMinecart(env)
 s_t = env.reset()
 s_t_pixel = pixel.observation(s_t)
 print(s_t_pixel.shape)
+print(env.action_space())
 
 # Note that s_t is a dictionary containing among others the state's pixels but also the cart's position, velocity, etc...
 # s_t = s_t["pixels"]
@@ -44,7 +45,8 @@ while not terminal:
   a_t = np.random.randint(env.a_space)
 
   # apply picked action in the environment
-  s_t1, r_t, terminal, _ = env.step(a_t)
+  s_t1, r_t, terminal, _= env.step(a_t)
+  print(env.step(a_t))
   # s_t1 = s_t1["pixels"]
   # print(s_t1)
   # update state

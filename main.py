@@ -13,6 +13,23 @@ from scipy import spatial
 from agent import DeepAgent
 from minecart import *
 from utils import *
+
+import gym
+from gym.spaces import Box
+
+class PixelMinecart(gym.ObservationWrapper):
+
+    def __init__(self, env):
+        # don't actually display pygame on screen
+        os.environ['SDL_VIDEODRIVER'] = 'dummy'
+        super(PixelMinecart, self).__init__(env)
+        self.observation_space = Box(low=0, high=255, shape=(480, 480, 3), dtype=np.uint8)
+
+    def observation(self, obs):
+        obs = self.render('rgb_array')
+        return obs
+
+
 mkdir_p("output")
 mkdir_p("output/logs")
 mkdir_p("output/networks")
@@ -104,7 +121,7 @@ parser.add_option("-x", "--extra", dest="extra", default="")
 parser.add_option("-p", "--reuse", dest="reuse",
                   choices=["full", "sectionned", "proportional"], default="full")
 parser.add_option(
-    "-c", "--mode", dest="mode", choices=["regular", "sparse"], default="sparse")
+    "-c", "--mode", dest="mode", choices=["regular", "sparse"], default="regular")
 parser.add_option(
     "-s", "--seed", dest="seed", default=None, help="Random Seed", type=int)
 parser.add_option(
@@ -116,21 +133,23 @@ parser.add_option("--memory_net", dest="memory_net", default=True)
 
 (options, args) = parser.parse_args()
 
-extra = "memory_net-{} temp_att-{} nl-{} lstm-{} a-{} m-{} s-{}  e-{} d-{} x-{} {} p-{} fs-{} d-{} up-{} lr-{} e-{} p-{} m-{}-{}".format(
-    options.memory_net, options.temp_att,
-    options.non_local, options.lstm,
-    options.alg, options.mem, options.seed,
-    options.end_e, options.dupe, options.extra, options.mode, options.reuse,
-    options.frame_skip,
-    np.round(options.discount, 4), options.updates,
-    np.round(options.lr, 4),
-    np.round(options.scale, 2), np.round(options.steps, 2), np.round(options.mem_a, 2), np.round(options.mem_e, 2))
+# extra = "memory_net-{} temp_att-{} nl-{} lstm-{} a-{} m-{} s-{}  e-{} d-{} x-{} {} p-{} fs-{} d-{} up-{} lr-{} e-{} p-{} m-{}-{}".format(
+#     options.memory_net, options.temp_att,
+#     options.non_local, options.lstm,
+#     options.alg, options.mem, options.seed,
+#     options.end_e, options.dupe, options.extra, options.mode, options.reuse,
+#     options.frame_skip,
+#     np.round(options.discount, 4), options.updates,
+#     np.round(options.lr, 4),
+#     np.round(options.scale, 2), np.round(options.steps, 2), np.round(options.mem_a, 2), np.round(options.mem_e, 2))
+extra = "AP_1-regular"
 
 random.seed(options.seed)
 np.random.seed(options.seed)
 
 json_file = "mine_config.json"
 minecart = Minecart.from_json(json_file)
+pixel_minecart = PixelMinecart(minecart)
 obj_cnt = minecart.obj_cnt()
 all_weights = generate_weights(
     count=options.steps, n=minecart.obj_cnt(), m=1 if options.mode == "sparse" else 10)
@@ -170,5 +189,5 @@ agent = DeepAgent(
 
 steps_per_weight = 50000 if options.mode == "sparse" else 1
 log_file = open('output/logs/rewards_{}'.format(extra), 'w', 1)
-agent.train(minecart, log_file,
+agent.train(minecart, pixel_minecart, log_file,
             options.steps, all_weights, steps_per_weight, options.steps*5)

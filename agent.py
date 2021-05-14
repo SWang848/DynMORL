@@ -20,7 +20,7 @@ from keras.optimizers import *
 from keras.utils import np_utils
 
 from config_agent import *
-from diverse_mem import DiverseMemory
+from diverse_mem_attentive import MemoryBuffer, AttentiveMemoryBuffer
 from memory_network import MemoryNetwork
 from history import *
 from utils import *
@@ -168,6 +168,9 @@ class DeepAgent():
         self.non_local = non_local
         self.temp_att = temp_att
         self.memory_net = memory_net
+        self.start_lambda = 4
+        self.end_lambda = 1
+        self.alpha = 1
 
         self.memory_size = memory_size
 
@@ -475,7 +478,8 @@ class DeepAgent():
         """
 
         np.random.seed(self.steps)
-        ids, batch, _ = self.buffer.sample(self.sample_size)
+        # ids, batch, _ = self.buffer.sample(self.sample_size)
+        ids, batch, _ = self.buffer.sample(self.sample_size, self.k, self.steps, self.weights, self.current_state)
 
         if self.direct_update:
             # Add recent experiences to the priority update batch
@@ -531,7 +535,7 @@ class DeepAgent():
 
         return loss
 
-    def train(self, environment, log_file, learning_steps, weights,
+    def train(self, environment, pixel_env, log_file, learning_steps, weights,
               per_weight_steps, total_steps):
         """Train agent on a series of weights for the given environment
 
@@ -569,7 +573,7 @@ class DeepAgent():
 
         current_state_raw = self.env.reset()
         current_state = self.history.fill_raw_frame(
-            current_state_raw["pixels"])
+            pixel_env.observation(current_state_raw))
 
         for i in range(int(self.total_steps)):
 
@@ -580,10 +584,10 @@ class DeepAgent():
             action = self.pick_action(current_state)
 
             # perform the action
-            next_state_raw, reward, terminal = self.env.step(
+            next_state_raw, reward, terminal, _ = self.env.step(
                 action, self.frame_skip)
 
-            next_state = self.history.add_raw_frame(next_state_raw["pixels"])
+            next_state = self.history.add_raw_frame(pixel_env.observation(next_state_raw))
 
             # memorize the experienced transition
             pred_idx = self.memorize(
@@ -597,20 +601,21 @@ class DeepAgent():
                 pred_idx=pred_idx)
 
             # update the networks and exploration rate
+            self.update_lambda(i)
             loss = self.perform_updates(i)
             self.update_epsilon(i)
 
             if terminal or episode_steps > self.max_episode_length:
                 start_state_raw = self.env.reset()
                 next_state = self.history.fill_raw_frame(
-                    start_state_raw["pixels"])
+                    pixel_env.observation(start_state_raw))
                 pred_idx = None
 
             self.log.log_step(self.env, i, loss, reward,
                               terminal or episode_steps > self.max_episode_length, current_state, next_state,
                               self.weights, self.end_discount, episode_steps,
                               self.epsilon, self.frame_skip,
-                              current_state_raw["content"], action)
+                              current_state_raw, action)
 
             current_state = next_state
             current_state_raw = next_state_raw
@@ -734,13 +739,22 @@ class DeepAgent():
         value_function = der_trace_value if self.memory_type == "DER" else sel_trace_value if self.memory_type == "SEL" else exp_trace_value
         trace_diversity = not(self.memory_type ==
                               "SEL" or self.memory_type == "EXP")
-        self.buffer = DiverseMemory(
+        
+        self.buffer = AttentiveMemoryBuffer(
             main_capacity=main_capacity,
             sec_capacity=sec_capacity,
             value_function=value_function,
             trace_diversity=trace_diversity,
             a=self.mem_a,
-            e=self.mem_e)
+            e=self.mem_e
+        )
+        # self.buffer = DiverseMemory(
+        #     main_capacity=main_capacity,
+        #     sec_capacity=sec_capacity,
+        #     value_function=value_function,
+        #     trace_diversity=trace_diversity,
+        #     a=self.mem_a,
+        #     e=self.mem_e)
 
     def predict(self, state, model=None, weights=None):
         """Predict values for the given state
@@ -828,6 +842,16 @@ class DeepAgent():
                                      self.end_e, start_steps)
         self.discount = self.end_discount - linear_anneal(steps, annealing_steps, self.end_discount - self.start_discount,
                                                           0, start_steps)
+
+    def update_lambda(self, steps):
+        start_steps = self.learning_steps * self.start_annealing
+        annealing_steps = self.total_steps * self.alpha
+
+        self.k = self.linear_anneal_lambda(steps, annealing_steps, self.start_lambda, self.end_lambda, start_steps)
+
+    def linear_anneal_lambda(self, steps, annealing_steps, start_lambda, end_lambda, start_steps):
+        t = max(0, steps - start_steps)
+        return max(end_lambda, (annealing_steps-t) * (start_lambda - end_lambda) / annealing_steps + end_lambda)
 
     def memorize(self,
                  state,
