@@ -533,6 +533,8 @@ class DeepAgent():
         loss = self.update_priorities(batch, ids)
         self.recent_experiences = []
 
+        self.log.transitions_log(batch, loss, self.steps, self.weights)
+
         return loss
 
     def train(self, environment, pixel_env, log_file, learning_steps, weights,
