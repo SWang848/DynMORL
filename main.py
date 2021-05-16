@@ -151,9 +151,11 @@ json_file = "mine_config.json"
 minecart = Minecart.from_json(json_file)
 pixel_minecart = PixelMinecart(minecart)
 obj_cnt = minecart.obj_cnt()
-all_weights = generate_weights(
-    count=options.steps, n=minecart.obj_cnt(), m=1 if options.mode == "sparse" else 10)
 
+# all_weights = generate_weights(
+#     count=options.steps, n=minecart.obj_cnt(), m=1 if options.mode == "sparse" else 10)
+# np.savetxt(r'.\regular_weights', np.array(all_weights))
+all_weights = list(np.loadtxt("regular_weights"))
 
 # b= [i.tolist() for i in minecart.pareto_coverage_set()]
 # print(np.array(b).T)
