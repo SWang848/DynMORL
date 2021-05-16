@@ -142,7 +142,7 @@ parser.add_option("--memory_net", dest="memory_net", default=True)
 #     np.round(options.discount, 4), options.updates,
 #     np.round(options.lr, 4),
 #     np.round(options.scale, 2), np.round(options.steps, 2), np.round(options.mem_a, 2), np.round(options.mem_e, 2))
-extra = "AP_1-regular"
+extra = "AP_2-regular"
 
 random.seed(options.seed)
 np.random.seed(options.seed)
@@ -192,4 +192,4 @@ agent = DeepAgent(
 steps_per_weight = 50000 if options.mode == "sparse" else 1
 log_file = open('output/logs/rewards_{}'.format(extra), 'w', 1)
 agent.train(minecart, pixel_minecart, log_file,
-            options.steps, all_weights, steps_per_weight, options.steps*5)
+            options.steps, all_weights, steps_per_weight, options.steps*10)

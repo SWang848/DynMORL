@@ -168,7 +168,7 @@ class DeepAgent():
         self.non_local = non_local
         self.temp_att = temp_att
         self.memory_net = memory_net
-        self.start_lambda = 4
+        self.start_lambda = 3
         self.end_lambda = 1
         self.alpha = 1
 
@@ -532,6 +532,8 @@ class DeepAgent():
 
         loss = self.update_priorities(batch, ids)
         self.recent_experiences = []
+
+        self.log.transitions_log(batch, loss, self.steps, self.weights)
 
         return loss
 

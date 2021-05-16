@@ -6,6 +6,7 @@ import time
 import numpy as np
 import errno
 import os
+import pandas as pd
 
 INF = float("Inf")
 
@@ -193,9 +194,19 @@ class Log(object):
         self.episode_rewards = []
         self.losses = []
         self.max_qs = []
+        self.transitions_file = open('output/logs/transitions_logs', 'w', 1)
         self.scal_acc_rewards = []
         self.opt_rewards = []
         self.straight_q = 0
+    
+    def transitions_log(self, batch, loss, steps, current_weights):
+        batch_weights = list()
+        for i in batch:
+            batch_weights.append(i[5][3].tolist())
+        transitions_weight = pd.value_counts(batch_weights)
+
+        log_line = ";".join(map(str, [steps, len(batch_weights), list(zip(transitions_weight.index, transitions_weight)), loss, current_weights]))
+        print(log_line, file=self.transitions_file)
 
     def log_step(self, env, total_steps, loss, reward, terminal, state,
                  next_state, weights, discount, episode_steps, epsilon,
