@@ -1,5 +1,5 @@
 import numpy as np
-from minecart import Minecart
+from minecart_original import Minecart
 
 import gym
 from gym.spaces import Box
@@ -23,19 +23,19 @@ class PixelMinecart(gym.ObservationWrapper):
 json_file = "mine_config_det.json"
 env = Minecart.from_json(json_file)
 
-pixel = PixelMinecart(env)
+# pixel = PixelMinecart(env)
 
 # # Or alternatively, generate a random instance
 # env = Minecart(mine_cnt=5,ore_cnt=2,capacity=1)
 
 # Initial State
 s_t = env.reset()
-s_t_pixel = pixel.observation(s_t)
-print(s_t_pixel.shape)
+# s_t_pixel = pixel.observation(s_t)
+# print(s_t_pixel.shape)
 print(env.action_space())
 
 # Note that s_t is a dictionary containing among others the state's pixels but also the cart's position, velocity, etc...
-# s_t = s_t["pixels"]
+s_t = s_t["pixels"]
 
 # flag indicates termination
 terminal = False
@@ -45,9 +45,9 @@ while not terminal:
   a_t = np.random.randint(env.a_space)
 
   # apply picked action in the environment
-  s_t1, r_t, terminal, _= env.step(a_t)
+  s_t1, r_t, terminal = env.step(a_t)
   print(env.step(a_t))
-  # s_t1 = s_t1["pixels"]
+  s_t1 = s_t1["pixels"]
   # print(s_t1)
   # update state
   s_t = s_t1

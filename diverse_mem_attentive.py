@@ -648,7 +648,7 @@ class AttentiveMemoryBuffer(PrioritizedDiverseMemory):
                                     kernel_initializer=initializers.GlorotUniform(seed),
                                     input_shape=x.shape))(x)
         x = LeakyReLU(0.01)(x)
-        x = TimeDistributed(MaxPool2D())(x)
+        x = TimeDistributed(MaxPooling2D())(x)
 
         x = Flatten()(x)
         state = x.numpy()
@@ -675,7 +675,7 @@ class AttentiveMemoryBuffer(PrioritizedDiverseMemory):
         if n<1:
             return None, None, None
 
-        if steps <= 10000:
+        if steps <= 100000:
             k = 1
         else:
             pass
@@ -697,7 +697,7 @@ class AttentiveMemoryBuffer(PrioritizedDiverseMemory):
                 s = np.random.uniform(0, self.tree.total(tree_id))
                 (idx, p, data) = self.tree.get(s, tree_id)
 
-            if steps > 10000:
+            if steps > 100000:
                 state = np.concatenate((np.expand_dims(data[1][0], axis=0), 
                                             np.expand_dims(current_state, axis=0)))
                 sim_score = self.cal_weights_similarity(current_weights, data[1][5][3]) + self.cal_states_similarity(state)
@@ -707,7 +707,7 @@ class AttentiveMemoryBuffer(PrioritizedDiverseMemory):
                 batch[i] = data[1]
                 priorities[i] = p
 
-        if steps > 10000:
+        if steps > 100000:
             score = sorted(score.items(), key=lambda item: item[1][1], reverse=False)
             for i in range(n):
                 ids[i] = score[i][1][0]
