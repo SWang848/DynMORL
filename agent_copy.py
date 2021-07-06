@@ -581,7 +581,7 @@ class DeepAgent():
             action = self.pick_action(current_state)
 
             # perform the action
-            next_state_raw, reward, terminal = self.env.step(
+            next_state_raw, reward, terminal, _ = self.env.step(
                 action, self.frame_skip)
 
             next_state = self.history.add_raw_frame(pixel_env.observation(next_state_raw))
