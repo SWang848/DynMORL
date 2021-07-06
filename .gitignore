@@ -27,3 +27,4 @@ output/logs/rewards_No.3 temp_att-False nl-False lstm-False a-cond m-DER s-None 
 output/logs/rewards_AP_1-regular
 output/logs/rewards_AP_2-regular
 output/logs/rewards_AP_3-regular
+output/logs/rewards_P_1-regular

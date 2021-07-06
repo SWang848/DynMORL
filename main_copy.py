@@ -11,7 +11,8 @@ import tensorflow as tf
 from scipy import spatial
 
 from agent_copy import DeepAgent
-from minecart_original import *
+# from minecart_original import *
+from minecart import *
 from utils import *
 
 import gym

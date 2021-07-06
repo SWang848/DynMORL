@@ -532,7 +532,7 @@ class DeepAgent():
 
         return loss
 
-    def train(self, environment, log_file, learning_steps, weights,
+    def train(self, environment, pixel_env, log_file, learning_steps, weights,
               per_weight_steps, total_steps):
         """Train agent on a series of weights for the given environment
 
@@ -570,7 +570,7 @@ class DeepAgent():
 
         current_state_raw = self.env.reset()
         current_state = self.history.fill_raw_frame(
-            current_state_raw["pixels"])
+            pixel_env.observation(current_state_raw))
 
         for i in range(int(self.total_steps)):
 
@@ -584,7 +584,7 @@ class DeepAgent():
             next_state_raw, reward, terminal = self.env.step(
                 action, self.frame_skip)
 
-            next_state = self.history.add_raw_frame(next_state_raw["pixels"])
+            next_state = self.history.add_raw_frame(pixel_env.observation(next_state_raw))
 
             # memorize the experienced transition
             pred_idx = self.memorize(
@@ -604,14 +604,14 @@ class DeepAgent():
             if terminal or episode_steps > self.max_episode_length:
                 start_state_raw = self.env.reset()
                 next_state = self.history.fill_raw_frame(
-                    start_state_raw["pixels"])
+                    pixel_env.observation(start_state_raw))
                 pred_idx = None
 
             self.log.log_step(self.env, i, loss, reward,
                               terminal or episode_steps > self.max_episode_length, current_state, next_state,
                               self.weights, self.end_discount, episode_steps,
                               self.epsilon, self.frame_skip,
-                              current_state_raw["content"], action)
+                              current_state_raw, action)
 
             current_state = next_state
             current_state_raw = next_state_raw

@@ -11,7 +11,8 @@ import tensorflow as tf
 from scipy import spatial
 
 from agent import DeepAgent
-from minecart_original import *
+# from minecart_original import *
+from minecart import *
 from utils import *
 
 import gym
@@ -147,7 +148,8 @@ extra = "AP_2-regular"
 random.seed(options.seed)
 np.random.seed(options.seed)
 
-json_file = "mine_config_det.json"
+json_file = "mine_config_det
+.json"
 minecart = Minecart.from_json(json_file)
 pixel_minecart = PixelMinecart(minecart)
 obj_cnt = minecart.obj_cnt()
