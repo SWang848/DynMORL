@@ -20,7 +20,7 @@ from keras.optimizers import *
 from keras.utils import np_utils
 
 from config_agent import *
-from diverse_mem_attentive import DiverseMemory
+from diverse_mem_attentive import MemoryBuffer
 from memory_network import MemoryNetwork
 from history import *
 from utils import *
@@ -475,7 +475,8 @@ class DeepAgent():
         """
 
         np.random.seed(self.steps)
-        ids, batch, _ = self.buffer.sample_attentive(self.sample_size, k, current_state)
+        # ids, batch, _ = self.buffer.sample_attentive(self.sample_size, k, current_state)
+        ids, batch, _ = self.buffer.sample(self.sample_size)
 
         if self.direct_update:
             # Add recent experiences to the priority update batch
@@ -734,7 +735,8 @@ class DeepAgent():
         value_function = der_trace_value if self.memory_type == "DER" else sel_trace_value if self.memory_type == "SEL" else exp_trace_value
         trace_diversity = not(self.memory_type ==
                               "SEL" or self.memory_type == "EXP")
-        self.buffer = DiverseMemory(
+        
+        self.buffer = MemoryBuffer(
             main_capacity=main_capacity,
             sec_capacity=sec_capacity,
             value_function=value_function,
