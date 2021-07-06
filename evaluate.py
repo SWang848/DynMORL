@@ -30,6 +30,10 @@ OPT_1={
 
 OPT_R = np.array([OPT['r1'], OPT['r2'], OPT['r3']]).T
 
+f = open('minecart.pkl', 'rb')
+inf = pickle.load(f)
+OPT_R = inf[0.98]
+
 def parse_array(text):
     array = text.lstrip(' [').rstrip(' ]').split()
     array = [eval(a) for a in array]
@@ -271,12 +275,7 @@ def draw_episodes(file_path):
     # plt.savefig(log_file+'.jpg')
     plt.show()
 
-# logs_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_2-regular')
-# transitions_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_2-regualr-transitions_logs')
-# # episode_evaluate(logs_file_path)
-# draw_episodes(logs_file_path)
-
-f = open('minecart.pkl', 'rb')
-inf = pickle.load(f)
-print(inf[0.98])
-print(OPT_R)
+logs_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_2-regular')
+# transitions_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_1-regualr-transitions_logs')
+episode_evaluate(logs_file_path)
+draw_episodes(logs_file_path)
