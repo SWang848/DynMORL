@@ -129,7 +129,7 @@ parser.add_option(
 parser.add_option("--lstm", dest="lstm", default=False)
 parser.add_option("--temp_att", dest="temp_att", default=False, help="temporal attention")
 parser.add_option("--spa_att", dest="spa_att", default=False, help="space attention")
-parser.add_option("--memory_net", dest="memory_net", default=True)
+parser.add_option("--memory_net", dest="memory_net", default=False)
 
 (options, args) = parser.parse_args()
 
