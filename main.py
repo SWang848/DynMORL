@@ -147,7 +147,7 @@ extra = "AP_2-regular"
 random.seed(options.seed)
 np.random.seed(options.seed)
 
-json_file = "mine_config_det.json"
+json_file = "mine_config.json"
 minecart = Minecart.from_json(json_file)
 pixel_minecart = PixelMinecart(minecart)
 obj_cnt = minecart.obj_cnt()
@@ -157,9 +157,9 @@ obj_cnt = minecart.obj_cnt()
 # np.savetxt(r'.\regular_weights', np.array(all_weights))
 all_weights = list(np.loadtxt("regular_weights"))
 
-b= [i.tolist() for i in minecart.pareto_coverage_set()]
-print(np.array(b).T)
-print(minecart.convex_coverage_set())
+# b= [i.tolist() for i in minecart.pareto_coverage_set()]
+# print(np.array(b).T)
+# print(minecart.convex_coverage_set())
 
 agent = DeepAgent(
     Minecart.action_space(),

@@ -157,9 +157,6 @@ obj_cnt = minecart.obj_cnt()
 # np.savetxt(r'.\regular_weights', np.array(all_weights))
 all_weights = list(np.loadtxt("regular_weights"))
 
-b= [i.tolist() for i in minecart.pareto_coverage_set()]
-print(np.array(b).T)
-print(minecart.convex_coverage_set())
 
 agent = DeepAgent(
     Minecart.action_space(),
