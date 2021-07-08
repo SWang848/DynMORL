@@ -34,6 +34,8 @@ f = open('minecart.pkl', 'rb')
 inf = pickle.load(f)
 OPT_R = inf[0.98]
 
+print(OPT_R)
+
 def parse_array(text):
     array = text.lstrip(' [').rstrip(' ]').split()
     array = [eval(a) for a in array]
@@ -48,6 +50,7 @@ def episode_evaluate(file_path):
     error_list = []
     act_reward_list = []
     opt_reward_list = []
+    regret_increase_list = []
     error = 0
     total_eps = 0
     total_reward = 0
@@ -80,6 +83,7 @@ def episode_evaluate(file_path):
                 total_reward += act_scal_reward
                 # if opt_reward - scal_reward < 0:
                 #     error += (opt_reward - scal_reward)
+                regret_increase_list.append(opt_scal_reward - act_scal_reward)
                 total_regret += (opt_scal_reward - act_scal_reward)
                 regret_list.append(total_regret)
                 error_list.append(error)
@@ -275,7 +279,113 @@ def draw_episodes(file_path):
     # plt.savefig(log_file+'.jpg')
     plt.show()
 
-logs_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_2-regular')
+def last_episode_chart(file_path, n_episodes=500):
+    data = pd.read_csv(file_path+'.csv')
+    
+    step_list = data['step'][-n_episodes:].to_list()
+    weight_list = data['weight'][-n_episodes:].to_list()
+    opt_reward_list = data['opt_reward'][-n_episodes:].to_list()
+    act_reward_list = data['act_reward'][-n_episodes:].to_list()
+
+
+    ax1 = plt.subplot(3, 1, 1)
+    plt.sca(ax1)
+    plt.plot([i for i in range(0,n_episodes)], [eval(weight_list[i])[0] for i in range(0, n_episodes)], label='weight')
+    plt.plot([i for i in range(0,n_episodes)], [parse_array(opt_reward_list[i])[0] for i in range(0, n_episodes)], label='opt_reward')
+    plt.plot([i for i in range(0,n_episodes)], [parse_array(act_reward_list[i])[0] for i in range(0, n_episodes)], label='act_reward')
+
+    plt.title('Reward 1', size=9)
+    # plt.xlabel('steps')
+    # plt.ylabel('regret')
+
+    # x_major_locator = MultipleLocator(1)
+    y_major_locator = MultipleLocator(0.2)
+    ax = plt.gca()
+
+    ax.yaxis.set_major_locator(y_major_locator)
+    plt.ylim(0, 2)
+    plt.tick_params(axis='y', labelsize=6)
+
+    for i in range(0, 20, 2):
+       plt.hlines(i/10, 0, n_episodes, colors = "black", linestyles = "dashed", alpha=0.1)
+
+    plt.legend(fontsize=8)
+
+    # ax.xaxis.set_major_locator(x_major_locator)
+    # plt.xlim(0,100)
+
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+
+    ax.spines['left'].set_position(('data',1))
+
+    # plt.tick_params(axis='x', labelsize=6)
+    # ax.xaxis.set_major_locator(x_major_locator)
+    # plt.xlim(0, 1000000)
+    # for i in range(0, 1000001, 50000):
+    #    plt.vlines(i, 0, 10000, colors = "black", linestyles = "dashed")
+
+    ax2 = plt.subplot(3, 1, 2)
+    plt.sca(ax2)
+    plt.plot([i for i in range(0,n_episodes)], [eval(weight_list[i])[1] for i in range(0, n_episodes)])
+    plt.plot([i for i in range(0,n_episodes)], [parse_array(opt_reward_list[i])[1] for i in range(0, n_episodes)])
+    plt.plot([i for i in range(0,n_episodes)], [parse_array(act_reward_list[i])[1] for i in range(0, n_episodes)])
+
+    plt.title('Reward 2', size=9)
+    # plt.xlabel('steps')
+    # plt.ylabel('regret')
+
+    # x_major_locator = MultipleLocator(1)
+    y_major_locator = MultipleLocator(0.2)
+    ax = plt.gca()
+
+    for i in range(0, 20, 2):
+       plt.hlines(i/10, 0, n_episodes, colors = "black", linestyles = "dashed", alpha=0.1)
+
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+
+    ax.spines['left'].set_position(('data',1))
+
+    ax.yaxis.set_major_locator(y_major_locator)
+    plt.ylim(0, 2)
+    plt.tick_params(axis='y', labelsize=6)
+
+
+    ax3 = plt.subplot(3, 1, 3)
+    plt.sca(ax3)
+    plt.plot([i for i in range(0,n_episodes)], [eval(weight_list[i])[2] for i in range(0, n_episodes)])
+    plt.plot([i for i in range(0,n_episodes)], [parse_array(opt_reward_list[i])[2] for i in range(0, n_episodes)])
+    plt.plot([i for i in range(0,n_episodes)], [parse_array(act_reward_list[i])[2] for i in range(0, n_episodes)])
+
+    plt.title('Reward 3', size=9)
+    # plt.xlabel('steps')
+    # plt.ylabel('regret')
+
+    # x_major_locator = MultipleLocator(1)
+    y_major_locator = MultipleLocator(0.25)
+    ax = plt.gca()
+
+    for i in range(2, 10, 2):
+        plt.hlines(i/10, 0, n_episodes, colors = "black", linestyles = "dashed", alpha=0.1)
+
+    for i in range(0, 20, 2):
+        plt.hlines(-i/10, 0, n_episodes, colors = "black", linestyles = "dashed", alpha=0.1)
+
+    ax.spines['right'].set_color('none')
+    ax.spines['top'].set_color('none')
+
+    ax.spines['left'].set_position(('data',1))
+
+    ax.yaxis.set_major_locator(y_major_locator)
+    plt.ylim(-2, 1)
+    plt.tick_params(axis='y', labelsize=6)
+    
+    plt.subplots_adjust(hspace = 0.5)
+    plt.show()
+
+logs_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_1-regular')
 # transitions_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_1-regualr-transitions_logs')
-episode_evaluate(logs_file_path)
-draw_episodes(logs_file_path)
+# episode_evaluate(logs_file_path)
+# draw_episodes(logs_file_path)
+last_episode_chart(logs_file_path)
