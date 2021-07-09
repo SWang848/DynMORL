@@ -32,7 +32,7 @@ OPT_R = np.array([OPT['r1'], OPT['r2'], OPT['r3']]).T
 
 f = open('minecart.pkl', 'rb')
 inf = pickle.load(f)
-OPT_R = inf[0.98]
+OPT_R = inf[1]
 
 print(OPT_R)
 
@@ -89,7 +89,7 @@ def episode_evaluate(file_path):
                 error_list.append(error)
 
 
-    df = pd.DataFrame({'step':steps_list, 'regret':regret_list, 'weight':weight_list, 'act_scal_reward':act_scal_reward_list, 'act_reward':act_reward_list, 'opt_scal_reward':opt_scal_reward_list, 'opt_reward':opt_reward_list, 'error':error_list})
+    df = pd.DataFrame({'step':steps_list, 'regret':regret_list, 'increase':regret_increase_list, 'weight':weight_list, 'act_scal_reward':act_scal_reward_list, 'act_reward':act_reward_list, 'opt_scal_reward':opt_scal_reward_list, 'opt_reward':opt_reward_list, 'error':error_list})
     df.to_csv(file_path+'.csv')
 
 def logs_evaluate(file_path):
@@ -206,6 +206,7 @@ def draw_episodes(file_path):
     error_list = []
     act_treasure = []
     opt_treasure = []
+    increase_list = []
 
     flag = [i for i in range(step_list[0], step_list[-1], 100)]
 
@@ -214,6 +215,8 @@ def draw_episodes(file_path):
     error_list.append(data['error'][0])
     act_treasure.append(data['act_reward'][0])
     opt_treasure.append(data['opt_reward'][0])
+    increase_list.append(data['increase'][0])
+
     j = 1
 
     for i in range(1, len(step_list)-1, 1):
@@ -233,10 +236,11 @@ def draw_episodes(file_path):
                 error_list.append(data['error'][i])
                 act_treasure.append(data['act_reward'][i])
                 opt_treasure.append(data['opt_reward'][i])
+                increase_list.append(data['increase'][i])
                 j = j + 1
 
     # regret
-    ax1 = plt.subplot(1, 2, 1)
+    ax1 = plt.subplot(1, 3, 1)
     plt.sca(ax1)
     plt.plot(new_steps_list, regret_list)
 
@@ -255,17 +259,33 @@ def draw_episodes(file_path):
     plt.tick_params(axis='x', labelsize=6)
     ax.xaxis.set_major_locator(x_major_locator)
     plt.xlim(0, 1000000)
-    for i in range(0, 1000001, 50000):
-        plt.vlines(i, 0, 10000, colors = "black", linestyles = "dashed")
-
+    for i in range(1000, 10000, 1000):
+        plt.hlines(i, 0, 1000000, colors = "black", linestyles = "dashed", alpha=0.1)
 
     # error
-    ax2 = plt.subplot(1, 2, 2)
+    ax2 = plt.subplot(1, 3, 2)
     plt.sca(ax2)
     plt.plot(new_steps_list, error_list)
     plt.title('error')
     plt.xlabel('steps')
     plt.ylabel('error')
+
+    x_major_locator = MultipleLocator(100000)
+    ax = plt.gca()
+
+    ax.spines['bottom'].set_position(('data',0))  
+
+    plt.tick_params(axis='x', labelsize=6)
+    ax.xaxis.set_major_locator(x_major_locator)
+    plt.xlim(0, 1000000)
+
+    # increase
+    ax3 = plt.subplot(1, 3, 3)
+    plt.sca(ax3)
+    plt.plot(new_steps_list, increase_list)
+    plt.title('regret increase')
+    plt.xlabel('steps')
+    plt.ylabel('regret')
 
     x_major_locator = MultipleLocator(100000)
     ax = plt.gca()
@@ -384,8 +404,8 @@ def last_episode_chart(file_path, n_episodes=500):
     plt.subplots_adjust(hspace = 0.5)
     plt.show()
 
-logs_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_1-regular')
+logs_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_3-regular')
 # transitions_file_path = os.path.join(os.getcwd(), 'output/logs/rewards_AP_1-regualr-transitions_logs')
-# episode_evaluate(logs_file_path)
-# draw_episodes(logs_file_path)
+episode_evaluate(logs_file_path)
+draw_episodes(logs_file_path)
 last_episode_chart(logs_file_path)
